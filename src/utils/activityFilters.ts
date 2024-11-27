@@ -63,24 +63,26 @@ export const filterActivities = (
         case THIS_WEEK_FOLDER:
             return activities.filter(activity => {
                 if (activity.deletedAt) return false;
-                
+
                 if (isThisWeek(new Date(activity.createdAt))) return true;
-                
+
                 const today = new Date();
                 switch (activity.repetitionType) {
                     case 'daily':
                         return true;
                     case 'weekly':
-                    case 'day-of-week':
-                        return shouldShowActivity(activity, today);
-                    case 'bi-weekly': {
-                        const createdDate = new Date(activity.createdAt);
-                        const daysDiff = Math.floor((today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
-                        const weeksDiff = Math.floor(daysDiff / 7);
-                        return weeksDiff % 2 === 0;
-                    }
-                    case 'monthly':
-                        return new Date(activity.createdAt).getDate() === today.getDate();
+                        return true;                   
+                    // TODO: implement this part in the future
+                    /*                     case 'day-of-week':
+                                            return shouldShowActivity(activity, today);
+                                        case 'bi-weekly': {
+                                            const createdDate = new Date(activity.createdAt);
+                                            const daysDiff = Math.floor((today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+                                            const weeksDiff = Math.floor(daysDiff / 7);
+                                            return weeksDiff % 2 === 0;
+                                        }
+                                        case 'monthly':
+                                            return new Date(activity.createdAt).getDate() === today.getDate(); */
                     default:
                         return false;
                 }

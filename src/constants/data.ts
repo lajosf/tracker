@@ -11,17 +11,13 @@ export const FOLDERS: PreservedFolderType[] = [
 
 const YESTERDAY_DATE = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 const A_TUESDAY_IN_THE_PAST = new Date('2024-01-09').toISOString() // Setting to a specific Tuesday
-const LAST_WEEK_DATE = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+const A_WEDNESDAY_IN_THE_PAST = new Date('2024-01-10').toISOString() // Setting to a specific Wednesday
 
 export const ACTIVITIES: Activity[] = [
-
-    { id: '1', name: 'Today1', folder: 'none', done: false, createdAt: new Date().toISOString(), deletedAt: null, repetitionType: 'daily' },
-    { id: '2', name: 'Yesterday', folder: 'none', done: false, createdAt: YESTERDAY_DATE, deletedAt: null, repetitionType: 'daily' },
-    { id: '3', name: 'Every Tuesday', folder: 'none', done: false, createdAt: A_TUESDAY_IN_THE_PAST, deletedAt: null, repetitionType: 'weekly' },
-    { id: '4', name: 'LastWeek1', folder: 'none', done: false, createdAt: LAST_WEEK_DATE, deletedAt: null, repetitionType: 'weekly' },
-    { id: '5', name: 'LastWeek2', folder: 'none', done: false, createdAt: LAST_WEEK_DATE, deletedAt: null, repetitionType: 'weekly' },
-    { id: '6', name: 'Deleted1', folder: 'none', done: false, createdAt: new Date().toISOString(), deletedAt: new Date().toISOString(), repetitionType: 'daily' },
-    { id: '7', name: 'Deleted2', folder: 'none', done: false, createdAt: new Date().toISOString(), deletedAt: new Date().toISOString(), repetitionType: 'daily' },
+    { id: '1', name: 'Daily1', folder: 'none', createdAt: new Date().toISOString(), deletedAt: null, repetitionType: 'daily' },
+    { id: '2', name: 'Daily2', folder: 'none', createdAt: YESTERDAY_DATE, deletedAt: null, repetitionType: 'daily' },
+    { id: '3', name: 'Weekly - Every Tuesday', folder: 'none', createdAt: A_TUESDAY_IN_THE_PAST, deletedAt: null, repetitionType: 'weekly' },
+    { id: '4', name: 'Weekly - Every Wednesday', folder: 'none', createdAt: A_WEDNESDAY_IN_THE_PAST, deletedAt: null, repetitionType: 'weekly' }
 ];
 
 export default { FOLDERS, ACTIVITIES };
