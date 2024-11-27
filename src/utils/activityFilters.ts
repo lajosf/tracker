@@ -7,8 +7,6 @@ import {
     ALL_FOLDER,
     TODAY_FOLDER,
     THIS_WEEK_FOLDER,
-    YESTERDAY_FOLDER,
-    LAST_WEEK_FOLDER,
     RECENTLY_DELETED_FOLDER
 } from '../constants/preservedFolders';
 

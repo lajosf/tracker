@@ -1,13 +1,14 @@
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { ACTIVITIES } from '../../../src/constants/data';
 import { Activity } from '../../../src/types/types';
 import { filterActivities } from '../../../src/utils/activityFilters';
+import { useActivityContext } from '../../../src/context/ActivityContext';
 
 export default function ActivitiesScreen(): JSX.Element {
     const { name } = useLocalSearchParams<{ name: string }>();
+    const { activities } = useActivityContext();
 
-    const activitiesToListUnderTheFolder = filterActivities(ACTIVITIES, name);
+    const activitiesToListUnderTheFolder = filterActivities(activities, name);
 
     const renderItem = ({ item }: { item: Activity }) => (
         <View style={styles.activityItem}>
