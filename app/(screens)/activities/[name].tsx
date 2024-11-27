@@ -1,19 +1,13 @@
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { ACTIVITIES, FOLDERS } from '../../../src/constants/data';
+import { ACTIVITIES } from '../../../src/constants/data';
 import { Activity } from '../../../src/types/types';
-import { ALL_FOLDER, RECENTLY_DELETED_FOLDER } from '../../../src/constants/preservedFolders';
+import { filterActivities } from '../../../src/utils/activityFilters';
 
 export default function ActivitiesScreen(): JSX.Element {
     const { name } = useLocalSearchParams<{ name: string }>();
 
-    let activitiesToListUnderTheFolder: Activity[] = [];
-
-    if (name === ALL_FOLDER) {
-        activitiesToListUnderTheFolder = ACTIVITIES.filter(activity => activity.deletedAt === null);
-    } else if (name === RECENTLY_DELETED_FOLDER) {
-        activitiesToListUnderTheFolder = ACTIVITIES.filter(activity => activity.deletedAt !== null);
-    }
+    const activitiesToListUnderTheFolder = filterActivities(ACTIVITIES, name);
 
     const renderItem = ({ item }: { item: Activity }) => (
         <View style={styles.activityItem}>
