@@ -3,6 +3,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { Activity } from '../../../src/types/types';
 import { filterActivities } from '../../../src/utils/activityFilters';
 import { useActivityContext } from '../../../src/context/ActivityContext';
+import { FolderScreenFooter } from '../../../src/components/FolderScreenFooter';
 
 export default function ActivitiesScreen(): JSX.Element {
     const { name } = useLocalSearchParams<{ name: string }>();
@@ -32,6 +33,7 @@ export default function ActivitiesScreen(): JSX.Element {
                     contentContainerStyle={styles.listContent}
                 />
             </View>
+            <FolderScreenFooter />
         </>
     );
 }
