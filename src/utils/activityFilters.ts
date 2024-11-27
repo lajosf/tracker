@@ -1,11 +1,6 @@
 import { Activity } from '../types/types';
 import {
-    isToday,
-    isSameDay,
     isThisWeek,
-    isYesterday,
-    isSameWeek,
-    subWeeks
 } from 'date-fns';
 
 import {
@@ -16,6 +11,13 @@ import {
     LAST_WEEK_FOLDER,
     RECENTLY_DELETED_FOLDER
 } from '../constants/preservedFolders';
+
+const predicates = {
+    isNotDeleted: (activity: Activity): boolean => !activity.deletedAt,
+    isDeleted: (activity: Activity): boolean => activity.deletedAt !== null,
+    matchesFolder: (folderName: string) => (activity: Activity): boolean =>
+        activity.folder === folderName,
+};
 
 export const shouldShowActivity = (activity: Activity, targetDate: Date = new Date()): boolean => {
     if (!activity.createdAt) return false;
@@ -30,21 +32,25 @@ export const shouldShowActivity = (activity: Activity, targetDate: Date = new Da
         case 'weekly':
             return createdDate.getDay() === targetDate.getDay();
 
-        case 'bi-weekly': {
-            const daysDiff = Math.floor((targetDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
-            const weeksDiff = Math.floor(daysDiff / 7);
-            return weeksDiff % 2 === 0 && createdDate.getDay() === targetDate.getDay();
-        }
-
-        case 'monthly':
-            return createdDate.getDate() === targetDate.getDate();
-
-        case 'day-of-week':
-            return createdDate.getDay() === targetDate.getDay();
-
         default:
             return false;
     }
+};
+
+const isActivityRepeatingThisWeek = (activity: Activity, today: Date): boolean => {
+    switch (activity.repetitionType) {
+        case 'daily':
+            return true;
+        case 'weekly':
+            return true;
+        default:
+            return false;
+    }
+};
+
+const isActivityInThisWeek = (activity: Activity): boolean => {
+    if (!activity.createdAt) return false;
+    return isThisWeek(new Date(activity.createdAt));
 };
 
 export const filterActivities = (
@@ -53,47 +59,29 @@ export const filterActivities = (
 ): Activity[] => {
     switch (folderName) {
         case ALL_FOLDER:
-            return activities.filter(activity => !activity.deletedAt);
+            return activities.filter(predicates.isNotDeleted);
 
         case TODAY_FOLDER:
             return activities.filter(activity =>
-                shouldShowActivity(activity) && !activity.deletedAt
+                shouldShowActivity(activity) && predicates.isNotDeleted(activity)
             );
 
         case THIS_WEEK_FOLDER:
             return activities.filter(activity => {
-                if (activity.deletedAt) return false;
-
-                if (isThisWeek(new Date(activity.createdAt))) return true;
+                if (!predicates.isNotDeleted(activity)) return false;
 
                 const today = new Date();
-                switch (activity.repetitionType) {
-                    case 'daily':
-                        return true;
-                    case 'weekly':
-                        return true;                   
-                    // TODO: implement this part in the future
-                    /*                     case 'day-of-week':
-                                            return shouldShowActivity(activity, today);
-                                        case 'bi-weekly': {
-                                            const createdDate = new Date(activity.createdAt);
-                                            const daysDiff = Math.floor((today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
-                                            const weeksDiff = Math.floor(daysDiff / 7);
-                                            return weeksDiff % 2 === 0;
-                                        }
-                                        case 'monthly':
-                                            return new Date(activity.createdAt).getDate() === today.getDate(); */
-                    default:
-                        return false;
-                }
+                return isActivityInThisWeek(activity) ||
+                    isActivityRepeatingThisWeek(activity, today);
             });
 
         case RECENTLY_DELETED_FOLDER:
-            return activities.filter(activity => activity.deletedAt !== null);
+            return activities.filter(predicates.isDeleted);
 
         default:
             return activities.filter(activity =>
-                activity.folder === folderName && !activity.deletedAt
+                predicates.matchesFolder(folderName)(activity) &&
+                predicates.isNotDeleted(activity)
             );
     }
 };
