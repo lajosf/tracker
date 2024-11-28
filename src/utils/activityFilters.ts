@@ -1,12 +1,15 @@
 import { Activity } from '../types/types';
 import {
-    isThisWeek,
+    isYesterday,
+    subDays,
+    isWithinInterval
 } from 'date-fns';
 
 import {
     ALL_FOLDER,
     TODAY_FOLDER,
-    THIS_WEEK_FOLDER,
+    YESTERDAY_FOLDER,
+    LAST_7DAYS_FOLDER,
     RECENTLY_DELETED_FOLDER
 } from '../constants/preservedFolders';
 
@@ -26,29 +29,20 @@ export const shouldShowActivity = (activity: Activity, targetDate: Date = new Da
     switch (activity.repetitionType) {
         case 'daily':
             return true;
-
         case 'weekly':
             return createdDate.getDay() === targetDate.getDay();
-
         default:
             return false;
     }
 };
 
-const isActivityRepeatingThisWeek = (activity: Activity, today: Date): boolean => {
-    switch (activity.repetitionType) {
-        case 'daily':
-            return true;
-        case 'weekly':
-            return true;
-        default:
-            return false;
-    }
-};
-
-const isActivityInThisWeek = (activity: Activity): boolean => {
+const isActivityInLast7Days = (activity: Activity): boolean => {
     if (!activity.createdAt) return false;
-    return isThisWeek(new Date(activity.createdAt));
+    const createdDate = new Date(activity.createdAt);
+    const today = new Date();
+    const sevenDaysAgo = subDays(today, 7);
+    
+    return isWithinInterval(createdDate, { start: sevenDaysAgo, end: today });
 };
 
 export const filterActivities = (
@@ -64,13 +58,17 @@ export const filterActivities = (
                 shouldShowActivity(activity) && predicates.isNotDeleted(activity)
             );
 
-        case THIS_WEEK_FOLDER:
+        case YESTERDAY_FOLDER:
+            return activities.filter(activity => {
+                if (!predicates.isNotDeleted(activity) || !activity.createdAt) return false;
+                return isYesterday(new Date(activity.createdAt)) ||
+                    (activity.repetitionType === 'daily' || activity.repetitionType === 'weekly');
+            });
+
+        case LAST_7DAYS_FOLDER:
             return activities.filter(activity => {
                 if (!predicates.isNotDeleted(activity)) return false;
-
-                const today = new Date();
-                return isActivityInThisWeek(activity) ||
-                    isActivityRepeatingThisWeek(activity, today);
+                return isActivityInLast7Days(activity) || activity.repetitionType === 'daily';
             });
 
         case RECENTLY_DELETED_FOLDER:
