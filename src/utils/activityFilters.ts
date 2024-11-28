@@ -47,7 +47,7 @@ const isActivityInLast7Days = (activity: Activity): boolean => {
     const createdDate = new Date(activity.createdAt);
     const today = new Date();
     const sevenDaysAgo = subDays(today, 7);
-    
+
     return isWithinInterval(createdDate, { start: sevenDaysAgo, end: today });
 };
 
@@ -68,18 +68,19 @@ export const filterActivities = (
             const yesterday = subDays(startOfDay(new Date()), 1);
             return activities.filter(activity => {
                 const createdDate = startOfDay(new Date(activity.createdAt));
-                return shouldShowActivity(activity, yesterday) && 
-                       predicates.isNotDeleted(activity) &&
-                       yesterday >= createdDate;
+                return shouldShowActivity(activity, yesterday) &&
+                    predicates.isNotDeleted(activity) &&
+                    yesterday >= createdDate;
             });
         }
 
         case LAST_7DAYS_FOLDER: {
             const today = startOfDay(new Date());
-            const sevenDaysAgo = subDays(today, 7);
+            const yesterday = subDays(today, 1);
+            const sevenDaysAgo = subDays(yesterday, 6); // 6 more days before yesterday
             return activities.filter(activity => {
                 const currentDate = new Date(sevenDaysAgo);
-                while (currentDate <= today) {
+                while (currentDate <= yesterday) { // Only go up to yesterday
                     if (shouldShowActivity(activity, currentDate)) {
                         return true;
                     }
@@ -106,6 +107,6 @@ export const filterActivitiesForLast7Days = async (
 ): Promise<Array<Activity & { isDone: boolean }>> => {
     const today = startOfDay(new Date());
     const sevenDaysAgo = subDays(today, 7);
-    
+
     return getActivitiesWithHistory(sevenDaysAgo, today);
 };
