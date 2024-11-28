@@ -25,7 +25,12 @@ export const shouldShowActivity = (activity: Activity, targetDate: Date = new Da
     if (!activity.createdAt) return false;
     if (activity.deletedAt) return false;
 
-    const createdDate = new Date(activity.createdAt);
+    const createdDate = startOfDay(new Date(activity.createdAt));
+    const targetDateStart = startOfDay(targetDate);
+
+    if (targetDateStart < createdDate) {
+        return false;
+    }
 
     switch (activity.repetitionType) {
         case 'daily':
@@ -59,18 +64,30 @@ export const filterActivities = (
                 shouldShowActivity(activity) && predicates.isNotDeleted(activity)
             );
 
-        case YESTERDAY_FOLDER:
+        case YESTERDAY_FOLDER: {
+            const yesterday = subDays(startOfDay(new Date()), 1);
             return activities.filter(activity => {
-                if (!predicates.isNotDeleted(activity) || !activity.createdAt) return false;
-                return isYesterday(new Date(activity.createdAt)) ||
-                    (activity.repetitionType === 'daily' || activity.repetitionType === 'weekly');
+                const createdDate = startOfDay(new Date(activity.createdAt));
+                return shouldShowActivity(activity, yesterday) && 
+                       predicates.isNotDeleted(activity) &&
+                       yesterday >= createdDate;
             });
+        }
 
-        case LAST_7DAYS_FOLDER:
+        case LAST_7DAYS_FOLDER: {
+            const today = startOfDay(new Date());
+            const sevenDaysAgo = subDays(today, 7);
             return activities.filter(activity => {
-                if (!predicates.isNotDeleted(activity)) return false;
-                return isActivityInLast7Days(activity) || activity.repetitionType === 'daily';
+                const currentDate = new Date(sevenDaysAgo);
+                while (currentDate <= today) {
+                    if (shouldShowActivity(activity, currentDate)) {
+                        return true;
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                return false;
             });
+        }
 
         case RECENTLY_DELETED_FOLDER:
             return activities.filter(predicates.isDeleted);

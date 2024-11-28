@@ -72,15 +72,16 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         // Get all activities that should show for any day in the range
         const activitiesInRange = activities.filter(activity => {
-            for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-                if (shouldShowActivity(activity, date)) {
+            const currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+                if (shouldShowActivity(activity, currentDate)) {
                     return true;
                 }
+                currentDate.setDate(currentDate.getDate() + 1);
             }
             return false;
         });
 
-        // Map each activity with its history status
         return activitiesInRange.map(activity => ({
             ...activity,
             isDone: history.some(h =>

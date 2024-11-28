@@ -54,9 +54,12 @@ export class ActivityHistoryService {
             const existingHistory = await this.getHistoryForDate(date);
             const existingActivityIds = new Set(existingHistory.map(h => h.activityId));
 
-            const missingActivities = activities.filter(activity =>
-                shouldShowActivity(activity, date) && !existingActivityIds.has(activity.id)
-            );
+            const missingActivities = activities.filter(activity => {
+                const createdDate = startOfDay(new Date(activity.createdAt));
+                return shouldShowActivity(activity, date) && 
+                       !existingActivityIds.has(activity.id) &&
+                       date >= createdDate;
+            });
 
             if (missingActivities.length === 0) return null;
 

@@ -5,7 +5,7 @@ import { filterActivities } from '../../../src/utils/activityFilters';
 import { useActivityContext } from '../../../src/context/ActivityContext';
 import { useState, useEffect } from 'react';
 import { subDays, startOfDay } from 'date-fns';
-import { LAST_7DAYS_FOLDER, TODAY_FOLDER, YESTERDAY_FOLDER, ALL_FOLDER } from '../../../src/constants/preservedFolders';
+import { LAST_7DAYS_FOLDER, TODAY_FOLDER, YESTERDAY_FOLDER, ALL_FOLDER, RECENTLY_DELETED_FOLDER } from '../../../src/constants/preservedFolders';
 
 export default function ActivitiesScreen(): JSX.Element {
     const { name } = useLocalSearchParams<{ name: string }>();
@@ -29,7 +29,13 @@ export default function ActivitiesScreen(): JSX.Element {
                     setActivitiesWithHistory(weekActivities);
                     break;
                 }
+                case TODAY_FOLDER: {
+                    const todayActivities = await getActivitiesWithHistory(today, today);
+                    setActivitiesWithHistory(todayActivities);
+                    break;
+                }
                 case ALL_FOLDER:
+                case RECENTLY_DELETED_FOLDER:
                 default:
                     setActivitiesWithHistory(
                         filterActivities(activities, name).map(a => ({ ...a, isDone: false }))
