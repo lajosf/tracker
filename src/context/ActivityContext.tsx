@@ -1,33 +1,60 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Activity } from '../types/types';
 import { StorageService } from '../services/StorageService';
+import { ActivityHistoryService } from '../services/ActivityHistoryService';
+import { shouldShowActivity } from '../utils/activityFilters';
+import { logger } from '../utils/logger';
 
 interface ActivityContextType {
     activities: Activity[];
     addActivity: (activity: Activity) => void;
     updateActivity: (activity: Activity) => void;
+    getActivitiesWithHistory: (startDate: Date, endDate: Date) => Promise<Array<Activity & { isDone: boolean }>>;
+    isInitialized: boolean;
 }
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
 
 export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [isInitialized, setIsInitialized] = useState(false);
 
+    // Load activities and initialize history when app starts
     useEffect(() => {
-        // Load activities from storage when component mounts
-        const loadActivities = async () => {
-            const storedActivities = await StorageService.getActivities('none');
-            setActivities(storedActivities);
-        };
-        loadActivities();
-    }, []);
+        const initializeApp = async () => {
+            try {
+                // Load activities first
+                const storedActivities = await StorageService.getActivities('none');
+                setActivities(storedActivities);
 
+                // Initialize missing history for all loaded activities
+                await ActivityHistoryService.initializeMissingHistory(storedActivities);
+
+                setIsInitialized(true);
+            } catch (error) {
+                logger.error('Failed to initialize app:', error);
+            }
+        };
+
+        initializeApp();
+    }, []); // Empty dependency array means this runs once when app starts
+
+    // When new activity is added, also initialize its history
     const addActivity = async (activity: Activity) => {
-        setActivities(prevActivities => {
-            const newActivities = [...prevActivities, activity];
-            StorageService.setActivities('none', newActivities);
-            return newActivities;
-        });
+        try {
+            setActivities(prevActivities => {
+                const newActivities = [...prevActivities, activity];
+                StorageService.setActivities('none', newActivities);
+
+                // Initialize history for the new activity
+                ActivityHistoryService.initializeMissingHistory([activity])
+                    .catch(error => logger.error('Failed to initialize history for new activity:', error));
+
+                return newActivities;
+            });
+        } catch (error) {
+            logger.error('Failed to add activity:', error);
+        }
     };
 
     const updateActivity = async (updatedActivity: Activity) => {
@@ -40,8 +67,37 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
     };
 
+    const getActivitiesWithHistory = async (startDate: Date, endDate: Date) => {
+        const history = await ActivityHistoryService.getHistoryForDateRange(startDate, endDate);
+
+        // Get all activities that should show for any day in the range
+        const activitiesInRange = activities.filter(activity => {
+            for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+                if (shouldShowActivity(activity, date)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        // Map each activity with its history status
+        return activitiesInRange.map(activity => ({
+            ...activity,
+            isDone: history.some(h =>
+                h.activityId === activity.id &&
+                h.isDone
+            )
+        }));
+    };
+
     return (
-        <ActivityContext.Provider value={{ activities, addActivity, updateActivity }}>
+        <ActivityContext.Provider value={{
+            activities,
+            addActivity,
+            updateActivity,
+            getActivitiesWithHistory,
+            isInitialized
+        }}>
             {children}
         </ActivityContext.Provider>
     );

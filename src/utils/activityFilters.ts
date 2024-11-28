@@ -2,7 +2,8 @@ import { Activity } from '../types/types';
 import {
     isYesterday,
     subDays,
-    isWithinInterval
+    isWithinInterval,
+    startOfDay
 } from 'date-fns';
 
 import {
@@ -80,4 +81,14 @@ export const filterActivities = (
                 predicates.isNotDeleted(activity)
             );
     }
+};
+
+export const filterActivitiesForLast7Days = async (
+    activities: Activity[],
+    getActivitiesWithHistory: (startDate: Date, endDate: Date) => Promise<Array<Activity & { isDone: boolean }>>
+): Promise<Array<Activity & { isDone: boolean }>> => {
+    const today = startOfDay(new Date());
+    const sevenDaysAgo = subDays(today, 7);
+    
+    return getActivitiesWithHistory(sevenDaysAgo, today);
 };

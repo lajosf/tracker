@@ -53,7 +53,6 @@ export class StorageService {
         }
     }
 
-    // Activity operations
     static async getActivities(folderId: string): Promise<Activity[]> {
         try {
             const key = `${STORAGE_KEYS.ACTIVITIES}-${folderId}`;
