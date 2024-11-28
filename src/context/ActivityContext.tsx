@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Activity } from '../types/types';
-import { ACTIVITIES } from '../constants/data';
+import { StorageService } from '../services/StorageService';
 
 interface ActivityContextType {
     activities: Activity[];
@@ -14,19 +14,30 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const [activities, setActivities] = useState<Activity[]>([]);
 
     useEffect(() => {
-        setActivities(ACTIVITIES);
+        // Load activities from storage when component mounts
+        const loadActivities = async () => {
+            const storedActivities = await StorageService.getActivities('none');
+            setActivities(storedActivities);
+        };
+        loadActivities();
     }, []);
 
-    const addActivity = (activity: Activity) => {
-        setActivities(prevActivities => [...prevActivities, activity]);
+    const addActivity = async (activity: Activity) => {
+        setActivities(prevActivities => {
+            const newActivities = [...prevActivities, activity];
+            StorageService.setActivities('none', newActivities);
+            return newActivities;
+        });
     };
 
-    const updateActivity = (updatedActivity: Activity) => {
-        setActivities(prevActivities =>
-            prevActivities.map(activity =>
+    const updateActivity = async (updatedActivity: Activity) => {
+        setActivities(prevActivities => {
+            const newActivities = prevActivities.map(activity =>
                 activity.id === updatedActivity.id ? updatedActivity : activity
-            )
-        );
+            );
+            StorageService.setActivities('none', newActivities);
+            return newActivities;
+        });
     };
 
     return (

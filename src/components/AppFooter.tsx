@@ -5,12 +5,12 @@ import { Link, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ALL_FOLDER } from '../constants/preservedFolders';
 
-export function FolderScreenFooter() {
+export function AppFooter() {
     const pathname = usePathname();
     const showAddActivityButton = pathname === '/folders' || pathname === `/activities/${ALL_FOLDER}`;
 
     return (
-        <BlurView intensity={30} tint="dark" style={styles.footer}>
+        <BlurView intensity={75} tint="light" style={styles.footer}>
             <View style={styles.footerContent}>
                 {showAddActivityButton && (
                     <Link href="/new-activity" asChild>
@@ -32,9 +32,7 @@ const styles = StyleSheet.create({
         right: 0,
         height: 45,
         borderTopWidth: 0.5,
-        borderTopColor: '#38383A',
-        backgroundColor: '#3b3b3b',
-        opacity: 0.5,
+        borderTopColor: 'rgba(0,0,0,0.2)',
     },
     footerContent: {
         flex: 1,
@@ -42,5 +40,5 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'center',
         paddingHorizontal: 16,
-    }
+    },
 });
