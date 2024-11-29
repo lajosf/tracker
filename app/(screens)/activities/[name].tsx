@@ -1,9 +1,9 @@
 import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
-import { useLocalSearchParams, Stack, router } from 'expo-router';
+import { useLocalSearchParams, Stack, router, useFocusEffect } from 'expo-router';
 import { Activity } from '../../../src/types/types';
 import { filterActivities } from '../../../src/utils/activityFilters';
 import { useActivityContext } from '../../../src/context/ActivityContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { subDays, startOfDay } from 'date-fns';
 import { LAST_7DAYS_FOLDER, TODAY_FOLDER, YESTERDAY_FOLDER, ALL_FOLDER, RECENTLY_DELETED_FOLDER } from '../../../src/constants/preservedFolders';
 
@@ -12,41 +12,44 @@ export default function ActivitiesScreen(): JSX.Element {
     const { activities, getActivitiesWithHistory } = useActivityContext();
     const [activitiesWithHistory, setActivitiesWithHistory] = useState<Array<Activity & { isDone: boolean }>>([]);
 
-    useEffect(() => {
-        const loadActivities = async () => {
-            const today = startOfDay(new Date());
+    const loadActivities = async () => {
+        const today = startOfDay(new Date());
 
-            switch (name) {
-                case YESTERDAY_FOLDER: {
-                    const yesterday = subDays(today, 1);
-                    const yesterdayActivities = await getActivitiesWithHistory(yesterday, yesterday);
-                    setActivitiesWithHistory(yesterdayActivities);
-                    break;
-                }
-                case LAST_7DAYS_FOLDER: {
-                    const today = startOfDay(new Date());
-                    const yesterday = subDays(today, 1);
-                    const sevenDaysAgo = subDays(yesterday, 6);
-                    const weekActivities = await getActivitiesWithHistory(sevenDaysAgo, yesterday);
-                    setActivitiesWithHistory(weekActivities);
-                    break;
-                }
-                case TODAY_FOLDER: {
-                    const todayActivities = await getActivitiesWithHistory(today, today);
-                    setActivitiesWithHistory(todayActivities);
-                    break;
-                }
-                case ALL_FOLDER:
-                case RECENTLY_DELETED_FOLDER:
-                default:
-                    setActivitiesWithHistory(
-                        filterActivities(activities, name).map(a => ({ ...a, isDone: false }))
-                    );
+        switch (name) {
+            case YESTERDAY_FOLDER: {
+                const yesterday = subDays(today, 1);
+                const yesterdayActivities = await getActivitiesWithHistory(yesterday, yesterday);
+                setActivitiesWithHistory(yesterdayActivities);
+                break;
             }
-        };
+            case LAST_7DAYS_FOLDER: {
+                const today = startOfDay(new Date());
+                const yesterday = subDays(today, 1);
+                const sevenDaysAgo = subDays(yesterday, 6);
+                const weekActivities = await getActivitiesWithHistory(sevenDaysAgo, yesterday);
+                setActivitiesWithHistory(weekActivities);
+                break;
+            }
+            case TODAY_FOLDER: {
+                const todayActivities = await getActivitiesWithHistory(today, today);
+                setActivitiesWithHistory(todayActivities);
+                break;
+            }
+            case ALL_FOLDER:
+            case RECENTLY_DELETED_FOLDER:
+            default:
+                setActivitiesWithHistory(
+                    filterActivities(activities, name).map(a => ({ ...a, isDone: false }))
+                );
+        }
+    };
 
-        loadActivities();
-    }, [name, activities]);
+    // Use useFocusEffect to reload activities when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            loadActivities();
+        }, [name, activities])
+    );
 
     const renderItem = ({ item }: { item: Activity & { isDone: boolean } }) => (
         <Pressable
