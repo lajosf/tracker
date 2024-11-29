@@ -2,7 +2,6 @@ import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { FOLDERS } from '../../src/constants/data';
 import { PreservedFolderType } from '../../src/types/types';
-import { FolderScreenFooter } from '../../src/components/FolderScreenFooter';
 
 export default function FoldersScreen(): JSX.Element {
     const renderItem = ({ item }: { item: PreservedFolderType }) => (
@@ -27,7 +26,6 @@ export default function FoldersScreen(): JSX.Element {
                 renderItem={renderItem}
                 keyExtractor={(item: PreservedFolderType) => item}
             />
-            <FolderScreenFooter />
         </View>
     );
 }
