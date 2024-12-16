@@ -3,10 +3,12 @@ import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useActivityContext } from '../../src/context/ActivityContext';
 import { Activity, RepetitionType } from '../../src/types/types';
+import { DaysOfWeekSelector } from '../../src/components/DaysOfWeekSelector';
 
 export default function NewActivityScreen() {
     const [name, setName] = useState('');
     const [repetitionType, setRepetitionType] = useState<RepetitionType>('daily');
+    const [selectedDays, setSelectedDays] = useState<number[]>([new Date().getDay()]);
     const { addActivity } = useActivityContext();
 
     const handleDone = () => {
@@ -20,12 +22,20 @@ export default function NewActivityScreen() {
             name: name.trim(),
             folder: 'none',
             repetitionType,
+            selectedDays: repetitionType === 'days-of-week' ? selectedDays : undefined,
             createdAt: new Date().toISOString(),
             deletedAt: null,
         };
 
         addActivity(newActivity);
         router.back();
+    };
+
+    const handleRepetitionChange = () => {
+        const types: RepetitionType[] = ['daily', 'weekly', 'days-of-week'];
+        const currentIndex = types.indexOf(repetitionType);
+        const nextIndex = (currentIndex + 1) % types.length;
+        setRepetitionType(types[nextIndex]);
     };
 
     return (
@@ -50,11 +60,20 @@ export default function NewActivityScreen() {
                 />
                 <Pressable
                     style={styles.repetitionButton}
-                    onPress={() => setRepetitionType(repetitionType === 'daily' ? 'weekly' : 'daily')}
+                    onPress={handleRepetitionChange}
                 >
                     <Text style={styles.repetitionLabel}>Repeat</Text>
                     <Text style={styles.repetitionValue}>{repetitionType}</Text>
                 </Pressable>
+                
+                {repetitionType === 'days-of-week' && (
+                    <View style={styles.daysContainer}>
+                        <DaysOfWeekSelector
+                            selectedDays={selectedDays}
+                            onDaysChange={setSelectedDays}
+                        />
+                    </View>
+                )}
             </View>
         </>
     );
@@ -92,5 +111,8 @@ const styles = StyleSheet.create({
     repetitionValue: {
         fontSize: 16,
         color: '#007AFF',
+    },
+    daysContainer: {
+        marginTop: 20,
     },
 }); 

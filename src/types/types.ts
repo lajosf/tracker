@@ -1,7 +1,7 @@
 import { PRESERVED_FOLDERS } from "../constants/preservedFolders";
 
 export type FolderType = 'system' | 'user';
-export type RepetitionType = 'daily' | 'weekly'
+export type RepetitionType = 'daily' | 'weekly' | 'days-of-week';
 // TODO: just a placeholder for now, implement all the types later
 //export type RepetitionType = 'daily' | 'weekly' | 'bi-weekly' | 'monthly' | 'nth-day' | 'day-of-week' | 'day-of-month' | 'nth-time-of-day' | 'nth-time-of-week' | 'nth-time-of-month';
 export type PreservedFolderType = typeof PRESERVED_FOLDERS[number];
@@ -18,6 +18,7 @@ export interface Activity {
     name: string;
     folder: string;
     repetitionType: RepetitionType;
+    selectedDays?: number[];  // 0-6 representing Sunday-Saturday
     createdAt: string;
     deletedAt?: string | null;
 }
