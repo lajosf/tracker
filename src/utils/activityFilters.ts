@@ -37,7 +37,7 @@ export const shouldShowActivity = (activity: Activity, targetDate: Date = new Da
             return true;
         case 'weekly':
             return createdDate.getDay() === targetDate.getDay();
-        case 'days-of-week':
+        case 'specific days':
             return activity.selectedDays?.includes(targetDate.getDay()) ?? false;
         default:
             return false;

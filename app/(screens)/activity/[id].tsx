@@ -58,7 +58,7 @@ export default function ActivityScreen() {
     };
 
     const handleRepetitionChange = () => {
-        const types: RepetitionType[] = ['daily', 'weekly', 'days-of-week'];
+        const types: RepetitionType[] = ['daily', 'weekly', 'specific days'];
         const currentIndex = types.indexOf(editedRepetitionType);
         const nextIndex = (currentIndex + 1) % types.length;
         setEditedRepetitionType(types[nextIndex]);
@@ -70,7 +70,7 @@ export default function ActivityScreen() {
                 ...activity,
                 name: editedName.trim(),
                 repetitionType: editedRepetitionType,
-                selectedDays: editedRepetitionType === 'days-of-week' ? selectedDays : undefined,
+                selectedDays: editedRepetitionType === 'specific days' ? selectedDays : undefined,
             };
             updateActivity(updatedActivity);
             router.back();
@@ -114,7 +114,7 @@ export default function ActivityScreen() {
                             <Text style={styles.label}>Repeats</Text>
                             <Text style={styles.value}>{editedRepetitionType}</Text>
                         </Pressable>
-                        {editedRepetitionType === 'days-of-week' && (
+                        {editedRepetitionType === 'specific days' && (
                             <View style={styles.daysSelector}>
                                 <DaysOfWeekSelector
                                     selectedDays={selectedDays}
@@ -129,7 +129,7 @@ export default function ActivityScreen() {
                             <Text style={styles.label}>Repeats</Text>
                             <Text style={styles.value}>{activity.repetitionType}</Text>
                         </View>
-                        {activity.repetitionType === 'days-of-week' && (
+                        {activity.repetitionType === 'specific days' && (
                             <View style={styles.daysSelector}>
                                 <DaysOfWeekSelector
                                     selectedDays={activity.selectedDays || []}

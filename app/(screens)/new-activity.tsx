@@ -22,7 +22,7 @@ export default function NewActivityScreen() {
             name: name.trim(),
             folder: 'none',
             repetitionType,
-            selectedDays: repetitionType === 'days-of-week' ? selectedDays : undefined,
+            selectedDays: repetitionType === 'specific days' ? selectedDays : undefined,
             createdAt: new Date().toISOString(),
             deletedAt: null,
         };
@@ -32,7 +32,7 @@ export default function NewActivityScreen() {
     };
 
     const handleRepetitionChange = () => {
-        const types: RepetitionType[] = ['daily', 'weekly', 'days-of-week'];
+        const types: RepetitionType[] = ['daily', 'weekly', 'specific days'];
         const currentIndex = types.indexOf(repetitionType);
         const nextIndex = (currentIndex + 1) % types.length;
         setRepetitionType(types[nextIndex]);
@@ -66,7 +66,7 @@ export default function NewActivityScreen() {
                     <Text style={styles.repetitionValue}>{repetitionType}</Text>
                 </Pressable>
                 
-                {repetitionType === 'days-of-week' && (
+                {repetitionType === 'specific days' && (
                     <View style={styles.daysContainer}>
                         <DaysOfWeekSelector
                             selectedDays={selectedDays}
