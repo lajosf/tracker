@@ -3,7 +3,7 @@ import { useLocalSearchParams, Stack, router, useFocusEffect } from 'expo-router
 import { Activity } from '../../../src/types/types';
 import { filterActivities } from '../../../src/utils/activityFilters';
 import { useActivityContext } from '../../../src/context/ActivityContext';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { subDays, startOfDay } from 'date-fns';
 import { LAST_7DAYS_FOLDER, TODAY_FOLDER, YESTERDAY_FOLDER, ALL_FOLDER, RECENTLY_DELETED_FOLDER } from '../../../src/constants/preservedFolders';
 
@@ -67,7 +67,6 @@ export default function ActivitiesScreen(): JSX.Element {
                     case LAST_7DAYS_FOLDER: {
                         const today = startOfDay(new Date());
                         const yesterday = subDays(today, 1);
-                        const sevenDaysAgo = subDays(yesterday, 6);
                         targetDate = yesterday;
                         break;
                     }
@@ -77,7 +76,10 @@ export default function ActivitiesScreen(): JSX.Element {
 
                 router.push({
                     pathname: `/activity/${item.id}`,
-                    params: { date: targetDate.toISOString() }
+                    params: { 
+                        date: targetDate.toISOString(),
+                        source: name 
+                    }
                 });
             }}
         >
@@ -99,7 +101,7 @@ export default function ActivitiesScreen(): JSX.Element {
                 <FlatList
                     data={activitiesWithHistory}
                     renderItem={renderItem}
-                    keyExtractor={(item: Activity) => item.id.toString()}
+                    keyExtractor={(item: Activity) => item.id}
                     contentContainerStyle={styles.listContent}
                 />
             </View>

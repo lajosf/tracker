@@ -1,28 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
 import { useActivityContext } from '../../../src/context/ActivityContext';
 import { startOfDay, isToday, parseISO } from 'date-fns';
 import { ActivityHistoryService } from '../../../src/services/ActivityHistoryService';
+import { ALL_FOLDER } from '../../../src/constants/preservedFolders';
+import { RepetitionType } from '../../../src/types/types';
+import { DaysOfWeekSelector } from '../../../src/components/DaysOfWeekSelector';
 
 export default function ActivityScreen() {
-    const { id, date } = useLocalSearchParams<{ id: string; date: string }>();
-    const { activities } = useActivityContext();
+    const { id, date, source } = useLocalSearchParams<{ 
+        id: string; 
+        date?: string;
+        source: string;
+    }>();
+    
+    const { activities, updateActivity } = useActivityContext();
     const [isDone, setIsDone] = useState(false);
+    const [editedName, setEditedName] = useState('');
+    const [editedRepetitionType, setEditedRepetitionType] = useState<RepetitionType>('daily');
+    const [selectedDays, setSelectedDays] = useState<number[]>([new Date().getDay()]);
+    
     const activity = activities.find(a => a.id === id);
-
+    const isFromAllFolder = source === ALL_FOLDER;
     const targetDate = date ? startOfDay(parseISO(date)) : startOfDay(new Date());
     const isHistorical = !isToday(targetDate);
 
     useEffect(() => {
-        const loadActivityStatus = async () => {
-            const history = await ActivityHistoryService.getHistoryForDate(targetDate);
-            const activityHistory = history.find(h => h.activityId === id);
-            setIsDone(activityHistory?.isDone ?? false);
-        };
+        if (activity) {
+            setEditedName(activity.name);
+            setEditedRepetitionType(activity.repetitionType);
+            setSelectedDays(activity.selectedDays || [new Date().getDay()]);
+        }
+    }, [activity]);
 
-        loadActivityStatus();
-    }, [id, targetDate]);
+    useEffect(() => {
+        if (!isFromAllFolder) {
+            const loadActivityStatus = async () => {
+                const history = await ActivityHistoryService.getHistoryForDate(targetDate);
+                const activityHistory = history.find(h => h.activityId === id);
+                setIsDone(activityHistory?.isDone ?? false);
+            };
+            loadActivityStatus();
+        }
+    }, [id, targetDate, isFromAllFolder]);
 
     const handleToggleDone = async () => {
         if (isHistorical) return;
@@ -36,6 +57,26 @@ export default function ActivityScreen() {
         setIsDone(!isDone);
     };
 
+    const handleRepetitionChange = () => {
+        const types: RepetitionType[] = ['daily', 'weekly', 'days-of-week'];
+        const currentIndex = types.indexOf(editedRepetitionType);
+        const nextIndex = (currentIndex + 1) % types.length;
+        setEditedRepetitionType(types[nextIndex]);
+    };
+
+    const handleSave = () => {
+        if (activity) {
+            const updatedActivity = {
+                ...activity,
+                name: editedName.trim(),
+                repetitionType: editedRepetitionType,
+                selectedDays: editedRepetitionType === 'days-of-week' ? selectedDays : undefined,
+            };
+            updateActivity(updatedActivity);
+            router.back();
+        }
+    };
+
     if (!activity) {
         router.back();
         return null;
@@ -46,32 +87,75 @@ export default function ActivityScreen() {
             <Stack.Screen
                 options={{
                     title: activity.name,
-                    headerBackTitle: 'Back'
+                    headerBackTitle: 'Back',
+                    headerRight: isFromAllFolder ? () => (
+                        <Pressable onPress={handleSave}>
+                            <Text style={styles.saveButton}>Save</Text>
+                        </Pressable>
+                    ) : undefined
                 }}
             />
             <View style={styles.container}>
-                <View style={styles.infoSection}>
-                    <Text style={styles.label}>Repeats</Text>
-                    <Text style={styles.value}>{activity.repetitionType}</Text>
-                </View>
-
-                <Pressable
-                    style={[
-                        styles.doneButton,
-                        isDone && styles.doneButtonActive,
-                        isHistorical && styles.doneButtonHistorical
-                    ]}
-                    onPress={handleToggleDone}
-                    disabled={isHistorical}
-                >
-                    <Text style={[
-                        styles.doneButtonText,
-                        isDone && styles.doneButtonTextActive,
-                        isHistorical && styles.doneButtonTextHistorical
-                    ]}>
-                        {isDone ? 'Done' : 'Mark as Done'}
-                    </Text>
-                </Pressable>
+                {isFromAllFolder ? (
+                    <>
+                        <View style={styles.editSection}>
+                            <Text style={styles.label}>Name</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={editedName}
+                                onChangeText={setEditedName}
+                                placeholder="Activity name"
+                            />
+                        </View>
+                        <Pressable
+                            style={styles.repetitionButton}
+                            onPress={handleRepetitionChange}
+                        >
+                            <Text style={styles.label}>Repeats</Text>
+                            <Text style={styles.value}>{editedRepetitionType}</Text>
+                        </Pressable>
+                        {editedRepetitionType === 'days-of-week' && (
+                            <View style={styles.daysSelector}>
+                                <DaysOfWeekSelector
+                                    selectedDays={selectedDays}
+                                    onDaysChange={setSelectedDays}
+                                />
+                            </View>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        <View style={styles.infoSection}>
+                            <Text style={styles.label}>Repeats</Text>
+                            <Text style={styles.value}>{activity.repetitionType}</Text>
+                        </View>
+                        {activity.repetitionType === 'days-of-week' && (
+                            <View style={styles.daysSelector}>
+                                <DaysOfWeekSelector
+                                    selectedDays={activity.selectedDays || []}
+                                    onDaysChange={() => {}}
+                                />
+                            </View>
+                        )}
+                        <Pressable
+                            style={[
+                                styles.doneButton,
+                                isDone && styles.doneButtonActive,
+                                isHistorical && styles.doneButtonHistorical
+                            ]}
+                            onPress={handleToggleDone}
+                            disabled={isHistorical}
+                        >
+                            <Text style={[
+                                styles.doneButtonText,
+                                isDone && styles.doneButtonTextActive,
+                                isHistorical && styles.doneButtonTextHistorical
+                            ]}>
+                                {isDone ? 'Done' : 'Mark as Done'}
+                            </Text>
+                        </Pressable>
+                    </>
+                )}
             </View>
         </>
     );
@@ -91,13 +175,45 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },
+    editSection: {
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    repetitionButton: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    daysSelector: {
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    input: {
+        fontSize: 16,
+        color: '#333',
+        padding: 8,
+        marginTop: 4,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 4,
+    },
     label: {
         fontSize: 16,
         color: '#666',
     },
     value: {
         fontSize: 16,
-        color: '#333',
+        color: '#007AFF',
+    },
+    saveButton: {
+        color: '#007AFF',
+        fontSize: 17,
+        fontWeight: '600',
+        paddingHorizontal: 16,
     },
     doneButton: {
         padding: 16,
