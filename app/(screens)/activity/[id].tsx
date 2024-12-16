@@ -125,18 +125,6 @@ export default function ActivityScreen() {
                     </>
                 ) : (
                     <>
-                        <View style={styles.infoSection}>
-                            <Text style={styles.label}>Repeats</Text>
-                            <Text style={styles.value}>{activity.repetitionType}</Text>
-                        </View>
-                        {activity.repetitionType === 'specific days' && (
-                            <View style={styles.daysSelector}>
-                                <DaysOfWeekSelector
-                                    selectedDays={activity.selectedDays || []}
-                                    onDaysChange={() => {}}
-                                />
-                            </View>
-                        )}
                         <Pressable
                             style={[
                                 styles.doneButton,
