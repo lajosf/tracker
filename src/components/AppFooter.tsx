@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, StyleSheet, Pressable, Alert } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { Link, usePathname, useGlobalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ALL_FOLDER, TODAY_FOLDER } from '../constants/preservedFolders';
@@ -12,22 +11,25 @@ export function AppFooter() {
     const params = useGlobalSearchParams();
     const { deleteActivity } = useActivityContext();
     const router = useRouter();
-    
-    const showAddActivityButton = pathname === '/folders' || 
-        pathname === `/activities/${ALL_FOLDER}` || 
-        pathname === `/activities/${TODAY_FOLDER}`;
-        
-    const showDeleteButton = pathname.startsWith('/activity/') && params.source === 'All';
 
-    const handleDeleteActivity = () => {
+    const showAddActivityButton = useMemo(() => 
+        pathname === '/folders' ||
+        pathname === `/activities/${ALL_FOLDER}` ||
+        pathname === `/activities/${TODAY_FOLDER}`,
+        [pathname]
+    );
+
+    const showDeleteButton = useMemo(() => 
+        pathname.startsWith('/activity/') && params.source === 'All',
+        [pathname, params.source]
+    );
+
+    const handleDeleteActivity = useCallback(() => {
         Alert.alert(
             'Delete Activity',
             'Are you sure you want to delete this activity?',
             [
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                },
+                { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Delete',
                     style: 'destructive',
@@ -41,24 +43,26 @@ export function AppFooter() {
                 }
             ]
         );
-    };
+    }, [pathname, deleteActivity, router]);
 
     return (
-        <BlurView intensity={75} tint="light" style={styles.footer}>
+        <View style={styles.footer}>
             <View style={styles.footerContent}>
-                <Link href="/new-activity" asChild style={[styles.leftButton, !showAddActivityButton && styles.hidden]}>
-                    <Pressable>
-                        <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+                {showAddActivityButton ? (
+                    <Link href="/new-activity" asChild>
+                        <Pressable style={styles.leftButton}>
+                            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+                        </Pressable>
+                    </Link>
+                ) : <View style={styles.placeholder} />}
+
+                {showDeleteButton ? (
+                    <Pressable onPress={handleDeleteActivity} style={styles.rightButton}>
+                        <Ionicons name="trash-outline" size={24} color="#FF3B30" />
                     </Pressable>
-                </Link>
-                <Pressable 
-                    onPress={handleDeleteActivity} 
-                    style={[styles.rightButton, !showDeleteButton && styles.hidden]}
-                >
-                    <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-                </Pressable>
+                ) : <View style={styles.placeholder} />}
             </View>
-        </BlurView>
+        </View>
     );
 }
 
@@ -71,6 +75,7 @@ const styles = StyleSheet.create({
         height: 45,
         borderTopWidth: 0.5,
         borderTopColor: 'rgba(0,0,0,0.2)',
+        backgroundColor: 'rgba(255,255,255,0.8)',
     },
     footerContent: {
         flex: 1,
@@ -85,8 +90,8 @@ const styles = StyleSheet.create({
     rightButton: {
         padding: 8,
     },
-    hidden: {
-        opacity: 0,
-        pointerEvents: 'none'
+    placeholder: {
+        width: 40,
+        height: 40,
     }
 });
