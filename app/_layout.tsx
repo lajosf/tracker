@@ -2,7 +2,6 @@ import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { StorageService } from '../src/services/StorageService';
 import { ActivityProvider } from '../src/context/ActivityContext';
-import { AppFooter } from '../src/components/AppFooter';
 import { View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -10,7 +9,6 @@ export default function Layout() {
     useEffect(() => {
         StorageService.initializePreservedFolders();
         
-        // Log all storage content on app start
         const logStorageContent = async () => {
             try {
                 const keys = await AsyncStorage.getAllKeys();
@@ -42,7 +40,6 @@ export default function Layout() {
                         },
                     }}
                 />
-                <AppFooter />
             </View>
         </ActivityProvider>
     );

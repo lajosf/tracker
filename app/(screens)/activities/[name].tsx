@@ -76,9 +76,9 @@ export default function ActivitiesScreen(): JSX.Element {
 
                 router.push({
                     pathname: `/activity/${item.id}`,
-                    params: { 
+                    params: {
                         date: targetDate.toISOString(),
-                        source: name 
+                        source: name
                     }
                 });
             }}

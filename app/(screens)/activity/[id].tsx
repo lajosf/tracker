@@ -7,6 +7,7 @@ import { ActivityHistoryService } from '../../../src/services/ActivityHistorySer
 import { ALL_FOLDER } from '../../../src/constants/preservedFolders';
 import { RepetitionType } from '../../../src/types/types';
 import { DaysOfWeekSelector } from '../../../src/components/DaysOfWeekSelector';
+import { AppFooter } from '../../../src/components/AppFooter';
 
 export default function ActivityScreen() {
     const { id, date, source } = useLocalSearchParams<{ 
@@ -145,6 +146,7 @@ export default function ActivityScreen() {
                     </>
                 )}
             </View>
+            <AppFooter />
         </>
     );
 }
