@@ -4,7 +4,14 @@ import { StorageService } from '../src/services/StorageService';
 import { ActivityProvider } from '../src/context/ActivityContext';
 import { View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppFooter } from '../src/components/AppFooter';
 
+/**
+ * Root layout component for the application.
+ * Handles the initialization of preserved folders on app start,
+ * sets up the navigation stack, and provides the ActivityContext to all child components.
+ * Also includes debugging functionality to log storage content during development.
+ */
 export default function Layout() {
     useEffect(() => {
         StorageService.initializePreservedFolders();
@@ -40,6 +47,7 @@ export default function Layout() {
                         },
                     }}
                 />
+                <AppFooter />
             </View>
         </ActivityProvider>
     );

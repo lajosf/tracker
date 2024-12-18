@@ -5,6 +5,14 @@ import { useActivityContext } from '../../src/context/ActivityContext';
 import { Activity, RepetitionType } from '../../src/types/types';
 import { DaysOfWeekSelector } from '../../src/components/DaysOfWeekSelector';
 
+/**
+ * Screen component for creating new activities.
+ * Features:
+ * - Activity name input
+ * - Repetition type selection
+ * - Specific days selection for custom repetition patterns
+ * - Activity creation and storage
+ */
 export default function NewActivityScreen() {
     const [name, setName] = useState('');
     const [repetitionType, setRepetitionType] = useState<RepetitionType>('daily');

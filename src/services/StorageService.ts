@@ -3,6 +3,15 @@ import { PRESERVED_FOLDERS } from '../constants/preservedFolders';
 import { Activity, Folder } from '../types/types';
 import { STORAGE_KEYS } from '../constants/storage';
 
+/**
+ * Service for managing persistent storage operations.
+ * Responsible for:
+ * - Initializing and managing system folders
+ * - Storing and retrieving activities
+ * - Managing folder data
+ * - Handling AsyncStorage operations
+ * - Maintaining data structure consistency
+ */
 export class StorageService {
     static async initializePreservedFolders(): Promise<void> {
         try {

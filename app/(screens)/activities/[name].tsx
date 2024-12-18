@@ -7,6 +7,14 @@ import { useState, useCallback } from 'react';
 import { subDays, startOfDay } from 'date-fns';
 import { LAST_7DAYS_FOLDER, TODAY_FOLDER, YESTERDAY_FOLDER, ALL_FOLDER, RECENTLY_DELETED_FOLDER } from '../../../src/constants/preservedFolders';
 
+/**
+ * Screen component for displaying activities within a specific folder.
+ * Features:
+ * - Dynamic activity listing based on folder type
+ * - Handling of system folders (Today, Yesterday, Last 7 days, etc.)
+ * - Activity status display and management
+ * - Navigation to individual activity details
+ */
 export default function ActivitiesScreen(): JSX.Element {
     const { name } = useLocalSearchParams<{ name: string }>();
     const { activities, getActivitiesWithHistory } = useActivityContext();
@@ -44,7 +52,6 @@ export default function ActivitiesScreen(): JSX.Element {
         }
     };
 
-    // Use useFocusEffect to reload activities when screen comes into focus
     useFocusEffect(
         useCallback(() => {
             loadActivities();
@@ -78,7 +85,7 @@ export default function ActivitiesScreen(): JSX.Element {
                     pathname: `/activity/${item.id}`,
                     params: {
                         date: targetDate.toISOString(),
-                        source: name
+                        source: name === ALL_FOLDER ? 'All' : undefined
                     }
                 });
             }}

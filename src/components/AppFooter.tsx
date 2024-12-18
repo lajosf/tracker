@@ -1,16 +1,19 @@
 import React from 'react';
 import { View, StyleSheet, Pressable, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Link, usePathname, useLocalSearchParams } from 'expo-router';
+import { Link, usePathname, useGlobalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ALL_FOLDER } from '../constants/preservedFolders';
+import { ALL_FOLDER, TODAY_FOLDER } from '../constants/preservedFolders';
 
 export function AppFooter() {
     const pathname = usePathname();
-    const { source } = useLocalSearchParams<{ source: string }>();
+    const params = useGlobalSearchParams();
     
-    const showAddActivityButton = pathname === '/folders' || pathname === `/activities/${ALL_FOLDER}`;
-    const showDeleteButton = pathname.includes('/activity/') && source === ALL_FOLDER;
+    const showAddActivityButton = pathname === '/folders' || 
+        pathname === `/activities/${ALL_FOLDER}` || 
+        pathname === `/activities/${TODAY_FOLDER}`;
+        
+    const showDeleteButton = pathname.startsWith('/activity/') && params.source === 'All';
 
     const handleDeleteActivity = () => {
         Alert.alert(
@@ -35,18 +38,17 @@ export function AppFooter() {
     return (
         <BlurView intensity={75} tint="light" style={styles.footer}>
             <View style={styles.footerContent}>
-                {showAddActivityButton && (
-                    <Link href="/new-activity" asChild style={styles.leftButton}>
-                        <Pressable>
-                            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
-                        </Pressable>
-                    </Link>
-                )}
-                {showDeleteButton && (
-                    <Pressable onPress={handleDeleteActivity} style={styles.rightButton}>
-                        <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                <Link href="/new-activity" asChild style={[styles.leftButton, !showAddActivityButton && styles.hidden]}>
+                    <Pressable>
+                        <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
                     </Pressable>
-                )}
+                </Link>
+                <Pressable 
+                    onPress={handleDeleteActivity} 
+                    style={[styles.rightButton, !showDeleteButton && styles.hidden]}
+                >
+                    <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                </Pressable>
             </View>
         </BlurView>
     );
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
     footerContent: {
         flex: 1,
         flexDirection: 'row',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
     },
@@ -75,4 +77,8 @@ const styles = StyleSheet.create({
     rightButton: {
         padding: 8,
     },
+    hidden: {
+        opacity: 0,
+        pointerEvents: 'none'
+    }
 });

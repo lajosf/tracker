@@ -14,6 +14,15 @@ import {
     RECENTLY_DELETED_FOLDER
 } from '../constants/preservedFolders';
 
+/**
+ * Utility functions for filtering and managing activities.
+ * Provides functionality for:
+ * - Determining activity visibility based on dates and repetition types
+ * - Filtering activities by folder
+ * - Managing activity display logic for different time periods
+ * - Handling activity repetition patterns
+ */
+
 const predicates = {
     isNotDeleted: (activity: Activity): boolean => !activity.deletedAt,
     isDeleted: (activity: Activity): boolean => activity.deletedAt !== null,

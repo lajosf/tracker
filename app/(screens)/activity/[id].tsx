@@ -7,8 +7,16 @@ import { ActivityHistoryService } from '../../../src/services/ActivityHistorySer
 import { ALL_FOLDER } from '../../../src/constants/preservedFolders';
 import { RepetitionType } from '../../../src/types/types';
 import { DaysOfWeekSelector } from '../../../src/components/DaysOfWeekSelector';
-import { AppFooter } from '../../../src/components/AppFooter';
 
+/**
+ * Screen component for viewing and editing individual activity details.
+ * Provides:
+ * - Activity information display
+ * - Status toggling for activity completion
+ * - Activity editing capabilities
+ * - Repetition pattern management
+ * - Historical status viewing
+ */
 export default function ActivityScreen() {
     const { id, date, source } = useLocalSearchParams<{ 
         id: string; 
@@ -16,6 +24,13 @@ export default function ActivityScreen() {
         source: string;
     }>();
     
+    console.log('ActivityScreen params:', {
+        id,
+        date,
+        source,
+        rawParams: useLocalSearchParams()
+    });
+
     const { activities, updateActivity } = useActivityContext();
     const [isDone, setIsDone] = useState(false);
     const [editedName, setEditedName] = useState('');
@@ -40,22 +55,16 @@ export default function ActivityScreen() {
             const loadActivityStatus = async () => {
                 const history = await ActivityHistoryService.getHistoryForDate(targetDate);
                 const activityHistory = history.find(h => h.activityId === id);
-                setIsDone(activityHistory?.isDone ?? false);
+                setIsDone(activityHistory?.isDone || false);
             };
             loadActivityStatus();
         }
     }, [id, targetDate, isFromAllFolder]);
 
     const handleToggleDone = async () => {
-        if (isHistorical) return;
-
-        const history = await ActivityHistoryService.getHistoryForDate(targetDate);
-        const updatedHistory = history.map(h =>
-            h.activityId === id ? { ...h, isDone: !isDone } : h
-        );
-
-        await ActivityHistoryService.setHistoryForDate(targetDate, updatedHistory);
-        setIsDone(!isDone);
+        const newIsDone = !isDone;
+        setIsDone(newIsDone);
+        await ActivityHistoryService.setActivityStatus(id, targetDate, newIsDone);
     };
 
     const handleRepetitionChange = () => {
@@ -69,18 +78,21 @@ export default function ActivityScreen() {
         if (activity) {
             const updatedActivity = {
                 ...activity,
-                name: editedName.trim(),
+                name: editedName,
                 repetitionType: editedRepetitionType,
                 selectedDays: editedRepetitionType === 'specific days' ? selectedDays : undefined,
             };
             updateActivity(updatedActivity);
-            router.back();
         }
+        router.back();
     };
 
     if (!activity) {
-        router.back();
-        return null;
+        return (
+            <View style={styles.container}>
+                <Text>Activity not found</Text>
+            </View>
+        );
     }
 
     return (
@@ -88,35 +100,32 @@ export default function ActivityScreen() {
             <Stack.Screen
                 options={{
                     title: activity.name,
-                    headerBackTitle: 'Back',
                     headerRight: isFromAllFolder ? () => (
                         <Pressable onPress={handleSave}>
                             <Text style={styles.saveButton}>Save</Text>
                         </Pressable>
-                    ) : undefined
+                    ) : undefined,
                 }}
             />
             <View style={styles.container}>
                 {isFromAllFolder ? (
                     <>
-                        <View style={styles.editSection}>
-                            <Text style={styles.label}>Name</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={editedName}
-                                onChangeText={setEditedName}
-                                placeholder="Activity name"
-                            />
-                        </View>
+                        <TextInput
+                            style={styles.input}
+                            value={editedName}
+                            onChangeText={setEditedName}
+                            placeholder="Activity Name"
+                        />
                         <Pressable
                             style={styles.repetitionButton}
                             onPress={handleRepetitionChange}
                         >
-                            <Text style={styles.label}>Repeats</Text>
+                            <Text style={styles.label}>Repeat</Text>
                             <Text style={styles.value}>{editedRepetitionType}</Text>
                         </Pressable>
+                        
                         {editedRepetitionType === 'specific days' && (
-                            <View style={styles.daysSelector}>
+                            <View style={styles.daysContainer}>
                                 <DaysOfWeekSelector
                                     selectedDays={selectedDays}
                                     onDaysChange={setSelectedDays}
@@ -146,7 +155,6 @@ export default function ActivityScreen() {
                     </>
                 )}
             </View>
-            <AppFooter />
         </>
     );
 }
@@ -157,39 +165,22 @@ const styles = StyleSheet.create({
         padding: 16,
         backgroundColor: '#fff',
     },
-    infoSection: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
+    input: {
+        fontSize: 16,
+        padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    editSection: {
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: '#ccc',
+        marginBottom: 20,
     },
     repetitionButton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    daysSelector: {
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    input: {
-        fontSize: 16,
-        color: '#333',
-        padding: 8,
-        marginTop: 4,
+        padding: 12,
         backgroundColor: '#f8f8f8',
         borderRadius: 4,
+    },
+    daysContainer: {
+        marginTop: 20,
     },
     label: {
         fontSize: 16,

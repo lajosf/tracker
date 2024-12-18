@@ -15,6 +15,17 @@ interface ActivityContextType {
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
 
+/**
+ * Activity Context Provider for managing the global state of activities.
+ * Provides functionality for:
+ * - Storing and retrieving activities
+ * - Adding new activities
+ * - Updating existing activities
+ * - Managing activity history
+ * - Tracking activity completion status
+ * 
+ * This context is the central source of truth for all activity-related data in the application.
+ */
 export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [isInitialized, setIsInitialized] = useState(false);
