@@ -2,8 +2,8 @@ export const PRESERVED_FOLDERS = [
     'All',
     'Today',
     'Yesterday',
-    'Last 7 days',
-    'Recently Deleted'
+    'Last 7 days'
+    //'Recently Deleted'
 ] as const;
 
 
