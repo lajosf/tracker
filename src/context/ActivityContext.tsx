@@ -9,6 +9,7 @@ interface ActivityContextType {
     activities: Activity[];
     addActivity: (activity: Activity) => void;
     updateActivity: (activity: Activity) => void;
+    deleteActivity: (activityId: string) => void;
     getActivitiesWithHistory: (startDate: Date, endDate: Date) => Promise<Array<Activity & { isDone: boolean }>>;
     isInitialized: boolean;
 }
@@ -78,6 +79,18 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
     };
 
+    const deleteActivity = async (activityId: string) => {
+        setActivities(prevActivities => {
+            const newActivities = prevActivities.map(activity =>
+                activity.id === activityId
+                    ? { ...activity, deletedAt: new Date().toISOString() }
+                    : activity
+            );
+            StorageService.setActivities('none', newActivities);
+            return newActivities;
+        });
+    };
+
     const getActivitiesWithHistory = async (startDate: Date, endDate: Date) => {
         const history = await ActivityHistoryService.getHistoryForDateRange(startDate, endDate);
 
@@ -107,6 +120,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             activities,
             addActivity,
             updateActivity,
+            deleteActivity,
             getActivitiesWithHistory,
             isInitialized
         }}>

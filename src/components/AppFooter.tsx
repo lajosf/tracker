@@ -4,10 +4,14 @@ import { BlurView } from 'expo-blur';
 import { Link, usePathname, useGlobalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ALL_FOLDER, TODAY_FOLDER } from '../constants/preservedFolders';
+import { useRouter } from 'expo-router';
+import { useActivityContext } from '../context/ActivityContext';
 
 export function AppFooter() {
     const pathname = usePathname();
     const params = useGlobalSearchParams();
+    const { deleteActivity } = useActivityContext();
+    const router = useRouter();
     
     const showAddActivityButton = pathname === '/folders' || 
         pathname === `/activities/${ALL_FOLDER}` || 
@@ -28,7 +32,11 @@ export function AppFooter() {
                     text: 'Delete',
                     style: 'destructive',
                     onPress: () => {
-                        // Delete functionality will be implemented in the next step
+                        const activityId = pathname.split('/').pop();
+                        if (activityId) {
+                            deleteActivity(activityId);
+                            router.back();
+                        }
                     }
                 }
             ]

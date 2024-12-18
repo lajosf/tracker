@@ -70,6 +70,14 @@ export const filterActivities = (
         case ALL_FOLDER:
             return activities.filter(predicates.isNotDeleted);
 
+        case RECENTLY_DELETED_FOLDER: {
+            const thirtyDaysAgo = subDays(new Date(), 30);
+            return activities.filter(activity => 
+                activity.deletedAt && 
+                new Date(activity.deletedAt) >= thirtyDaysAgo
+            );
+        }
+
         case TODAY_FOLDER:
             return activities.filter(activity =>
                 shouldShowActivity(activity) && predicates.isNotDeleted(activity)
@@ -100,9 +108,6 @@ export const filterActivities = (
                 return false;
             });
         }
-
-        case RECENTLY_DELETED_FOLDER:
-            return activities.filter(predicates.isDeleted);
 
         default:
             return activities.filter(activity =>
